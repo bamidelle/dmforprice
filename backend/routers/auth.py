@@ -44,18 +44,16 @@ def verify_jwt(token: str):
 # -------------------------
 
 @router.post("/signup")
-def signup(data: SignupRequest):
-    # 1. Create store
+def signup_user(email: str, password: str, store_name: str):
     store = supabase.table("stores").insert({
-        "name": data.store_name
+        "name": store_name
     }).execute()
 
     store_id = store.data[0]["id"]
 
-    # 2. Create user
     user = supabase.table("users").insert({
-        "email": data.email,
-        "password": data.password,  # hash later
+        "email": email,
+        "password": password,
         "store_id": store_id
     }).execute()
 
@@ -64,35 +62,29 @@ def signup(data: SignupRequest):
         "store_id": store_id
     })
 
-    return {
-        "token": token,
-        "store_id": store_id
-    }
+    return token, store_id
 
 @router.post("/login")
-def login(data: LoginRequest):
-    user = (
+def login_user(email: str, password: str):
+    response = (
         supabase.table("users")
         .select("*")
-        .eq("email", data.email)
-        .eq("password", data.password)
-        .single()
+        .eq("email", email)
+        .eq("password", password)
         .execute()
     )
 
-    if not user.data:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not response.data:
+        return None, None
+
+    user = response.data[0]
 
     token = create_jwt({
-        "user_id": user.data["id"],
-        "store_id": user.data["store_id"]
+        "user_id": user["id"],
+        "store_id": user["store_id"]
     })
 
-    return {
-        "token": token,
-        "store_id": user.data["store_id"]
-    }
-    
+    return token, user["store_id"]
 
 # -------------------------
 # Streamlit-friendly helpers
