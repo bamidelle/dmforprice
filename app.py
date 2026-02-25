@@ -1,6 +1,8 @@
 import streamlit as st
 #from backend.routers.auth import login_user, signup_user
 
+from backend.routers.auth import login_user, signup_user
+
 st.set_page_config(page_title="DM for Price")
 
 # -------------------------
