@@ -90,3 +90,49 @@ def login(data: LoginRequest):
         "token": token,
         "store_id": user.data["store_id"]
     }
+    
+
+# -------------------------
+# Streamlit-friendly helpers
+# -------------------------
+
+def signup_user(email: str, password: str, store_name: str):
+    store = supabase.table("stores").insert({
+        "name": store_name
+    }).execute()
+
+    store_id = store.data[0]["id"]
+
+    user = supabase.table("users").insert({
+        "email": email,
+        "password": password,
+        "store_id": store_id
+    }).execute()
+
+    token = create_jwt({
+        "user_id": user.data[0]["id"],
+        "store_id": store_id
+    })
+
+    return token, store_id
+
+
+def login_user(email: str, password: str):
+    user = (
+        supabase.table("users")
+        .select("*")
+        .eq("email", email)
+        .eq("password", password)
+        .single()
+        .execute()
+    )
+
+    if not user.data:
+        return None, None
+
+    token = create_jwt({
+        "user_id": user.data["id"],
+        "store_id": user.data["store_id"]
+    })
+
+    return token, user.data["store_id"]
