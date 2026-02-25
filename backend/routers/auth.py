@@ -5,6 +5,8 @@ import jwt
 from backend.database import supabase
 from backend.config import settings
 
+from backend.database import supabase
+from backend.config import settings
 router = APIRouter()
 
 # -------------------------
