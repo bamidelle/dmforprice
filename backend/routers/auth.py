@@ -112,21 +112,22 @@ def signup_user(email: str, password: str, store_name: str):
 
 
 def login_user(email: str, password: str):
-    user = (
+    response = (
         supabase.table("users")
         .select("*")
         .eq("email", email)
         .eq("password", password)
-        .single()
         .execute()
     )
 
-    if not user.data:
+    if not response.data:
         return None, None
 
+    user = response.data[0]
+
     token = create_jwt({
-        "user_id": user.data["id"],
-        "store_id": user.data["store_id"]
+        "user_id": user["id"],
+        "store_id": user["store_id"]
     })
 
-    return token, user.data["store_id"]
+    return token, user["store_id"]
