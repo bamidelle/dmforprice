@@ -2,5 +2,4 @@ streamlit
 fastapi
 supabase
 python-jose
-pydantic
 requests
