@@ -1,7 +1,4 @@
 from supabase import create_client
-from backend.config import settings
+from backend.config import SUPABASE_URL, SUPABASE_KEY
 
-supabase = create_client(
-    settings.SUPABASE_URL,
-    settings.SUPABASE_KEY
-)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
