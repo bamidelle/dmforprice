@@ -1,4 +1,4 @@
-from backend.config import JWT_SECRET
+import streamlit as st
 
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
