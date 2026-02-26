@@ -3,3 +3,4 @@ fastapi
 supabase
 python-jose
 requests
+bcrypt
