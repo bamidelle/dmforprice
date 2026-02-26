@@ -67,6 +67,9 @@ if not st.session_state["authenticated"]:
 
         if st.button("Sign Up"):
             token, store_id = signup_user(email, password, store_name)
+            if not token:
+                st.error("Email already exists. Please log in.")
+                st.stop()
 
             if token:
                 st.session_state["authenticated"] = True
