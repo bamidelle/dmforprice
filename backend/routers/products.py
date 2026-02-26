@@ -1,18 +1,18 @@
-from fastapi import APIRouter
 from backend.database import supabase
 
-router = APIRouter()
-
-@router.post("/")
-def create_product(data: dict):
-    response = supabase.table("products").insert(data).execute()
+def create_product(store_id, name, price, description):
+    response = supabase.table("products").insert({
+        "store_id": store_id,
+        "name": name,
+        "price": price,
+        "description": description
+    }).execute()
     return response.data
 
-@router.get("/")
-def list_products(store_id: str):
-    response = supabase.table("products").select("*").eq("store_id", store_id).execute()
+def get_products(store_id):
+    response = supabase.table("products") \
+        .select("*") \
+        .eq("store_id", store_id) \
+        .order("created_at", desc=True) \
+        .execute()
     return response.data
-
-@router.get("/")
-def list_products(user=Depends(get_current_user)):
-    store_id = user["store_id"]
