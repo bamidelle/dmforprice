@@ -53,26 +53,23 @@ def signup_user(email: str, password: str, store_name: str):
 
 def login_user(email: str, password: str):
 
-    # Fetch single user
+    # ✅ SAFE QUERY (no .single())
     response = (
         supabase.table("users")
         .select("*")
         .eq("email", email)
-        .single()
         .execute()
     )
 
     if not response.data:
         return None, None
 
-    user = response.data
+    user = response.data[0]
 
-    stored_hash = user["password_hash"]
-
-    # 🔐 Verify password correctly
+    # 🔐 Verify password
     if not bcrypt.checkpw(
         password.encode("utf-8"),
-        stored_hash.encode("utf-8")
+        user["password_hash"].encode("utf-8")
     ):
         return None, None
 
