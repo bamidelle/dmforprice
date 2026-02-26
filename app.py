@@ -4,7 +4,7 @@ from backend.routers.auth import login_user, signup_user
 st.set_page_config(page_title="DM for Price")
 
 # -------------------------
-# Session state
+# Session state (init)
 # -------------------------
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
@@ -17,6 +17,13 @@ if "store_id" not in st.session_state:
 
 if "email" not in st.session_state:
     st.session_state["email"] = None
+
+# -------------------------
+# Restore session on refresh
+# -------------------------
+if not st.session_state["authenticated"]:
+    if st.session_state.get("token") and st.session_state.get("store_id"):
+        st.session_state["authenticated"] = True
 
 
 # =========================
@@ -82,6 +89,8 @@ else:
     st.write("Store ID:", st.session_state["store_id"])
     st.write("Email:", st.session_state["email"])
 
+    # Proper logout wipe
     if st.button("Logout"):
-        st.session_state.clear()
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
         st.rerun()
