@@ -112,44 +112,44 @@ else:
         st.write("📈 Sales performance and AI insights will appear here.")
 
     # ---- Products
-st.subheader("Products")
+    elif page == "Products":
+        st.subheader("Products")
 
-    with st.expander("➕ Add New Product"):
-        name = st.text_input("Product Name")
-        price = st.number_input("Price", min_value=0.0, step=0.5)
-        description = st.text_area("Description")
-    
-        if st.button("Create Product"):
-            if not name:
-                st.error("Product name is required")
-            else:
-                create_product(
-                    st.session_state["store_id"],
-                    name,
-                    price,
-                    description
-                )
-                st.success("Product created successfully")
-                st.rerun()
-    
-    st.markdown("### Your Products")
-    
-    products = get_products(st.session_state["store_id"])
-    
-    if not products:
-        st.info("No products yet. Add your first product.")
-    else:
-        for product in products:
-            with st.container():
-                st.markdown(f"**{product['name']}**")
-                st.write(f"₦{product['price']}")
-                st.caption(product.get("description", ""))
-                st.markdown("---")
+        with st.expander("➕ Add New Product"):
+            name = st.text_input("Product Name")
+            price = st.number_input("Price", min_value=0.0, step=0.5)
+            description = st.text_area("Description")
+
+            if st.button("Create Product"):
+                if not name:
+                    st.error("Product name is required")
+                else:
+                    create_product(
+                        st.session_state["store_id"],
+                        name,
+                        price,
+                        description
+                    )
+                    st.success("Product created successfully")
+                    st.rerun()
+
+        st.markdown("### Your Products")
+
+        products = get_products(st.session_state["store_id"])
+
+        if not products:
+            st.info("No products yet. Add your first product.")
+        else:
+            for product in products:
+                with st.container():
+                    st.markdown(f"**{product['name']}**")
+                    st.write(f"₦{product['price']}")
+                    st.caption(product.get("description", ""))
+                    st.markdown("---")
 
     # ---- Orders
     elif page == "Orders":
         st.subheader("Orders")
-
         st.info("Orders from Instagram, WhatsApp, and TikTok will appear here.")
 
     # ---- Settings
