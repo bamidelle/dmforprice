@@ -3,10 +3,10 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 import jwt
 from backend.database import supabase
-from backend.config import settings
+from backend.config import JWT_SECRET
 
 from backend.database import supabase
-from backend.config import settings
+from backend.config import JWT_SECRET
 router = APIRouter()
 
 # -------------------------
@@ -28,12 +28,12 @@ class LoginRequest(BaseModel):
 
 def create_jwt(payload: dict):
     payload["exp"] = datetime.utcnow() + timedelta(days=7)
-    token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+    token = jwt.encode(payload, JWT_SECRET, algorithm="HS256")
     return token
 
 def verify_jwt(token: str):
     try:
-        return jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
