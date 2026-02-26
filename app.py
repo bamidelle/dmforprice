@@ -1,7 +1,7 @@
 import streamlit as st
 from backend.routers.auth import login_user, signup_user
 
-st.set_page_config(page_title="DM for Price")
+st.set_page_config(page_title="DM for Price", layout="wide")
 
 # -------------------------
 # Session state (init)
@@ -80,17 +80,57 @@ if not st.session_state["authenticated"]:
 
 
 # =========================
-# DASHBOARD (TEMP)
+# DASHBOARD
 # =========================
 else:
-    st.title("DM for Price Dashboard")
 
-    st.write("Welcome 👋")
-    st.write("Store ID:", st.session_state["store_id"])
-    st.write("Email:", st.session_state["email"])
+    # ---- Sidebar navigation
+    st.sidebar.title("DM for Price")
+    st.sidebar.caption("Social Commerce OS")
 
-    # Proper logout wipe
-    if st.button("Logout"):
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        st.rerun()
+    page = st.sidebar.radio(
+        "Navigate",
+        ["Overview", "Products", "Orders", "Settings"]
+    )
+
+    # ---- Dashboard header
+    st.title("Dashboard")
+    st.caption(f"Logged in as {st.session_state['email']}")
+
+    # ---- Overview
+    if page == "Overview":
+        st.subheader("Store Overview")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Total Products", 0)
+        col2.metric("Total Orders", 0)
+        col3.metric("Revenue", "₦0")
+
+        st.markdown("---")
+        st.write("📈 Sales performance and AI insights will appear here.")
+
+    # ---- Products
+    elif page == "Products":
+        st.subheader("Products")
+
+        st.info("Product management coming next.")
+        st.button("➕ Add New Product")
+
+    # ---- Orders
+    elif page == "Orders":
+        st.subheader("Orders")
+
+        st.info("Orders from Instagram, WhatsApp, and TikTok will appear here.")
+
+    # ---- Settings
+    elif page == "Settings":
+        st.subheader("Settings")
+
+        st.write("Store ID:", st.session_state["store_id"])
+        st.write("Email:", st.session_state["email"])
+
+        if st.button("Logout"):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
