@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from datetime import datetime, timedelta
 import jwt
 import bcrypt
@@ -9,40 +9,50 @@ from backend.config import JWT_SECRET
 router = APIRouter()
 
 # -------------------------
-# JWT Helpers
+# JWT Helper
 # -------------------------
-
 def create_jwt(payload: dict):
     payload["exp"] = datetime.utcnow() + timedelta(days=7)
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
 # =========================
-# STREAMLIT-FRIENDLY HELPERS
+# SIGNUP
 # =========================
-
 def signup_user(email: str, password: str, store_name: str):
 
-    # 🔐 Hash password properly
-    password_hash = bcrypt.hashpw(
-        password.encode("utf-8"),
-        bcrypt.gensalt()
-    ).decode("utf-8")
+    # 1️⃣ Check if user already exists
+    existing = (
+        supabase.table("users")
+        .select("id")
+        .eq("email", email)
+        .execute()
+    )
 
-    # Create store
+    if existing.data:
+        return None, None  # email already exists
+
+    # 2️⃣ Create store
     store = supabase.table("stores").insert({
         "name": store_name
     }).execute()
 
     store_id = store.data[0]["id"]
 
-    # Create user with hashed password
+    # 3️⃣ Hash password
+    password_hash = bcrypt.hashpw(
+        password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
+
+    # 4️⃣ Create user
     user = supabase.table("users").insert({
         "email": email,
         "password_hash": password_hash,
         "store_id": store_id
     }).execute()
 
+    # 5️⃣ Generate token
     token = create_jwt({
         "user_id": user.data[0]["id"],
         "store_id": store_id
@@ -51,9 +61,11 @@ def signup_user(email: str, password: str, store_name: str):
     return token, store_id
 
 
+# =========================
+# LOGIN
+# =========================
 def login_user(email: str, password: str):
 
-    # ✅ SAFE QUERY (no .single())
     response = (
         supabase.table("users")
         .select("*")
@@ -73,15 +85,9 @@ def login_user(email: str, password: str):
     ):
         return None, None
 
-    # Create JWT
-    token = jwt.encode(
-        {
-            "user_id": user["id"],
-            "store_id": user["store_id"],
-            "exp": datetime.utcnow() + timedelta(days=7)
-        },
-        JWT_SECRET,
-        algorithm="HS256"
-    )
+    token = create_jwt({
+        "user_id": user["id"],
+        "store_id": user["store_id"]
+    })
 
     return token, user["store_id"]
