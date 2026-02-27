@@ -1,11 +1,10 @@
 import streamlit as st
 from backend.routers.auth import login_user, signup_user
-from backend.routers.products import create_product, get_products
 
 st.set_page_config(page_title="DM for Price", layout="wide")
 
 # -------------------------
-# Session state (init)
+# Session init
 # -------------------------
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
@@ -36,7 +35,7 @@ if not st.session_state["authenticated"]:
 
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
-    # ---------------- LOGIN ----------------
+    # -------- LOGIN --------
     with tab1:
         st.subheader("Login")
 
@@ -57,7 +56,7 @@ if not st.session_state["authenticated"]:
             else:
                 st.error("Invalid email or password")
 
-    # ---------------- SIGNUP ----------------
+    # -------- SIGNUP --------
     with tab2:
         st.subheader("Create an account")
 
@@ -66,21 +65,32 @@ if not st.session_state["authenticated"]:
         password = st.text_input("Password", type="password", key="signup_password")
 
         if st.button("Sign Up"):
-            token, store_id = signup_user(email, password, store_name)
-            if not token:
+
+            # ✅ new error-safe signup handling
+            result, store_id = signup_user(email, password, store_name)
+
+            if result == "EMAIL_EXISTS":
                 st.error("Email already exists. Please log in.")
                 st.stop()
 
-            if token:
-                st.session_state["authenticated"] = True
-                st.session_state["token"] = token
-                st.session_state["store_id"] = store_id
-                st.session_state["email"] = email
+            if result == "STORE_NAME_EMPTY":
+                st.error("Store name is required.")
+                st.stop()
 
-                st.success("Signup successful! Redirecting...")
-                st.rerun()
-            else:
-                st.error("Signup failed")
+            if store_id is None:
+                st.error("Signup failed:")
+                st.code(result)
+                st.stop()
+
+            token = result
+
+            st.session_state["authenticated"] = True
+            st.session_state["token"] = token
+            st.session_state["store_id"] = store_id
+            st.session_state["email"] = email
+
+            st.success("Signup successful! Redirecting...")
+            st.rerun()
 
 
 # =========================
@@ -97,7 +107,7 @@ else:
         ["Overview", "Products", "Orders", "Settings"]
     )
 
-    # ---- Dashboard header
+    # ---- Header
     st.title("Dashboard")
     st.caption(f"Logged in as {st.session_state['email']}")
 
@@ -106,7 +116,6 @@ else:
         st.subheader("Store Overview")
 
         col1, col2, col3 = st.columns(3)
-
         col1.metric("Total Products", 0)
         col2.metric("Total Orders", 0)
         col3.metric("Revenue", "₦0")
@@ -117,38 +126,8 @@ else:
     # ---- Products
     elif page == "Products":
         st.subheader("Products")
-
-        with st.expander("➕ Add New Product"):
-            name = st.text_input("Product Name")
-            price = st.number_input("Price", min_value=0.0, step=0.5)
-            description = st.text_area("Description")
-
-            if st.button("Create Product"):
-                if not name:
-                    st.error("Product name is required")
-                else:
-                    create_product(
-                        st.session_state["store_id"],
-                        name,
-                        price,
-                        description
-                    )
-                    st.success("Product created successfully")
-                    st.rerun()
-
-        st.markdown("### Your Products")
-
-        products = get_products(st.session_state["store_id"])
-
-        if not products:
-            st.info("No products yet. Add your first product.")
-        else:
-            for product in products:
-                with st.container():
-                    st.markdown(f"**{product['name']}**")
-                    st.write(f"₦{product['price']}")
-                    st.caption(product.get("description", ""))
-                    st.markdown("---")
+        st.info("Product management coming next.")
+        st.button("➕ Add New Product")
 
     # ---- Orders
     elif page == "Orders":
