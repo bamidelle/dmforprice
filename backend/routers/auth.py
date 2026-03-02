@@ -61,6 +61,19 @@ def login_user(email: str, password: str):
     elif isinstance(legacy_password, str):
         # Backward compatibility for old records that stored plaintext passwords.
         is_valid_password = password == legacy_password
+    if stored_hash is None:
+        # Backward compatibility for old records that stored plaintext passwords.
+        stored_hash = user.get("password")
+
+    if not isinstance(stored_hash, (str, bytes)):
+        return None, None
+
+    hash_bytes = stored_hash if isinstance(stored_hash, bytes) else stored_hash.encode("utf-8")
+
+    try:
+        is_valid_password = bcrypt.checkpw(password.encode("utf-8"), hash_bytes)
+    except ValueError:
+        return None, None
 
     if not is_valid_password:
         return None, None
