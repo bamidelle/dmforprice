@@ -48,6 +48,19 @@ def login_user(email: str, password: str):
     user = response.data[0]
 
     stored_hash = user.get("password_hash")
+    legacy_password = user.get("password")
+
+    is_valid_password = False
+
+    if isinstance(stored_hash, (str, bytes)):
+        hash_bytes = stored_hash if isinstance(stored_hash, bytes) else stored_hash.encode("utf-8")
+        try:
+            is_valid_password = bcrypt.checkpw(password.encode("utf-8"), hash_bytes)
+        except ValueError:
+            is_valid_password = False
+    elif isinstance(legacy_password, str):
+        # Backward compatibility for old records that stored plaintext passwords.
+        is_valid_password = password == legacy_password
     if stored_hash is None:
         # Backward compatibility for old records that stored plaintext passwords.
         stored_hash = user.get("password")
