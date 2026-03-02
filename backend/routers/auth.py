@@ -46,7 +46,23 @@ def login_user(email: str, password: str):
         return None, None
 
     user = response.data[0]
-    if not bcrypt.checkpw(password.encode("utf-8"), user["password_hash"].encode("utf-8")):
+
+    stored_hash = user.get("password_hash")
+    legacy_password = user.get("password")
+
+    is_valid_password = False
+
+    if isinstance(stored_hash, (str, bytes)):
+        hash_bytes = stored_hash if isinstance(stored_hash, bytes) else stored_hash.encode("utf-8")
+        try:
+            is_valid_password = bcrypt.checkpw(password.encode("utf-8"), hash_bytes)
+        except ValueError:
+            is_valid_password = False
+    elif isinstance(legacy_password, str):
+        # Backward compatibility for old records that stored plaintext passwords.
+        is_valid_password = password == legacy_password
+
+    if not is_valid_password:
         return None, None
 
     token = create_jwt({"user_id": user["id"], "store_id": user["store_id"]})
